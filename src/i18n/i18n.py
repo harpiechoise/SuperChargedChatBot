@@ -8,7 +8,6 @@ class I18nManager:
     """Manage the translation database, this is a read only object."""
 
     def __init__(self, file_path: str, language: str = None):
-        # TODO: Implement autolocale (1 minute :v)
         """Manage the translation database.
 
         Args:
@@ -113,3 +112,5 @@ def initalize_i18n_manager(forced_locale: str = None):
 
     string_manager = I18nManager(config["i18n_database_path"], forced_locale)
     return string_manager
+
+LOCALES = initalize_i18n_manager()

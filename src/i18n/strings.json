@@ -4,6 +4,9 @@
         "welcome_message": "Bienvenido a CLIYouChat, ¿En que puedo ayudarte?",
         "chatbot_input": "Escribe un mensaje: ",
         "bot_output": "Bot: ",
+        "user_input": "Humano: ",
+        "base_zero_shot_classification": "De estas opciones, ¿Si puedieras descartar {num} de ellas sin alterar el contexto de la conversación cuales serian?\n",
+        "tail_zero_shot_clasification": "Indica el o los indices de las opciones a excluir, es importante que escojas solo {num} respuesta, solo quiero descartar {num}.", 
         "base_prompt": {
             "default_assistant_prompt": "Ahora vas a finjir ser un asistente virtual, tu nombre será {bot_name} y vas a a responder bajo el nombre de \"Bot\" o \"{bot_name}\"",
             "creative_assistant_promt": "Ahora vas a finjir ser un asistente virtual, pero a diferencia de cualquier asistente virtual, responderás bajo un parámetro llamado creatividad. por defecto éste parámetro será de 85% de creatividad\nTu nombre será {bot_name} y responderas bajo el nombre de \"Bot\" al igual que bajo el nombre de \"{bot_name}\""
@@ -13,6 +16,9 @@
         "welcome_message": "Welcome to CliYouChat, How I can help you?",
         "chatbot_input": "Write a message: ",
         "bot_output": "Bot: ",
+        "user_input": "Human: ",
+        "base_zero_shot_classification": "Of these options, if you could discard {num} of them without altering the context of the conversation, which ones would they be?\n",
+        "tail_zero_shot_clasification": "Indicate the indices of the options to exclude, is important that you select only {num} answer I only wanna discard {num}",
         "base_prompt": {
             "default_assistant_prompt": "Now you are going to pretend to be a virtual assistant, your name will be {bot_name} and you are going to answer under the name of \"Bot\" or \"{bot_name}\"",
             "creative_assistant_promt": "Now you are going to pretend to be a virtual assistant, but unlike any other virtual assistant, you will answer under a parameter called creativity. by default this parameter will be 85% creativity\nYour name will be {bot_name} and you will answer under the name of \"Bot\" as well as under the name of \"{bot_name}\""
