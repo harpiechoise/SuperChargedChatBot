@@ -1,13 +1,9 @@
 """Entry point for ChatBotProject."""
 import os
 from src import YouChat, LOCALES
+from src.chat_modules.prompt_manager import PromptManager
 
-print(LOCALES['welcome_message'])
-command = ""
-chat = YouChat(api_key=os.environ['CHATAPI'], locales=LOCALES, ia_name="Flancisco")
-# Chat loop
-while command != "$exit":
-    query = input(LOCALES['user_input'])
-    response = chat.generate(query)
-    print("Bot:", response)
-# ESTOY SUFRIENDO !
+chat = YouChat(os.environ['CHATAPI'], LOCALES, "Flancisco")
+promter = PromptManager(chat, LOCALES)
+
+promter.chatbot_cli_mainloop()

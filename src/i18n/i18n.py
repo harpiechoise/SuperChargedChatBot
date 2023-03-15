@@ -7,7 +7,7 @@ import locale
 class I18nManager:
     """Manage the translation database, this is a read only object."""
 
-    def __init__(self, file_path: str, language: str = None):
+    def __init__(self, file_path: str = "./src/i18n/i18n.py", language: str = None):
         """Manage the translation database.
 
         Args:

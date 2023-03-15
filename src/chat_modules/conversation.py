@@ -42,8 +42,8 @@ class Conversation:
             if not self.discard_method:
                 self.history = self.history[1:]
             else:
-                print("Ola soy un metodo")
-                self.discard_method(self.history, self.discard_beams)
+                self.history = self.discard_method(self.history, self.discard_beams)
+
         # TODO: Find a formula to add weight to the interaction roles.
         self.history.append(f"{self.locales['user_input']}: {message}")
 

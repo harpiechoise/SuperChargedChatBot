@@ -3,83 +3,64 @@ from src import Conversation
 from youdotcom import Chat
 from time import sleep
 import re
-
+import requests
 
 class BaseChatBotManager:
-    """Base class for Chatbot classes.
+    """A base class for managing chatbot queries.
 
-    Raises:
-        AttributeError: You need to set `use_context` parameter in the class
-            initialization.
-        NotImplemented: Base classes doesn't allow you to call basemethods.
-        NotImplemented: Base classes doesn't allow you to call basemethods.
+    This class provides an interface for creating chatbot managers that can handle different types of queries using context or not.
 
-    Returns:
-        _type_: _description_
+    :param use_context: A boolean indicating whether to use context or not.
+    :type use_context: bool
+    :param locales: A list of locales supported by the chatbot manager.
+    :type locales: list
+    :param limit: An optional integer specifying the maximum number of messages in the conversation history. Defaults to 10.
+    :type limit: int
+    :param ia_name: An optional string specifying the name of the chatbot. Defaults to "Bot".
+    :type ia_name: str
+    :param discard_method: An optional string specifying the method to discard old messages from the conversation history. Defaults to None
+    :param discard_beams: An optional integer specifying how many beams to discard when using lifo method. Defaults to 1.
+    :type discard_beams: int
     """
 
-    def __init__(self, use_context: bool, locales, limit: int = 2, ia_name="Bot", discard_method=None, discard_beams: int = 1):
-        """Initialize to create Chatbots from a text generator API or bot.
-
-        Args:
-            use_context (bool): If conversation context is required for
-                language model this allows you to set
-            limit (int, optional): Context lenght limit. Defaults to 10.
-            ia_name (str, optional): The name of your chatbot. Defaults to
-                "Bot".
-
-        Raises:
-            AttributeError: `use_context` parameter is required for this class.
-                solution: YouChat(use_context=true)
-        """
+    def __init__(self, use_context: bool, locales, limit: int = 10, ia_name="Bot", discard_method=None, discard_beams: int = 1):
         if not use_context:
             raise AttributeError("Use context property is required.")
         self.use_context = use_context
 
-        if self.use_context:
+        if self.use_context is None:
             self.context = Conversation(limit=limit, ia_name=ia_name, locales=locales, discard_method=discard_method, discard_beams=discard_beams)
 
     def chatbot_query(self, message):
-        """Make query to chatbot, you send a message and return a chatbot api response.
+        """A method to query the chatbot with a given message.
 
-        Args:
-            message (str): User message.
+        This method should be implemented by subclasses to handle different types of queries.
 
-        Raises:
-            NotImplemented: You cannot call the method from the base class.
+        :param message: A string representing the user input.
+        :type message: str
+        :return: A string representing the chatbot response.
+        :rtype: str
+        :raises NotImplementedError: If the method is not implemented by a subclass.
         """
         raise NotImplementedError("This is a base class")
 
     def preprocess(self, response):
-        """Preprocess the chatbot query to transform to the final user response.
 
-        Example:
-        ```python
-
-        ...
-        def preprocess(self, response):
-        return response['message'].replace("Bot:")....
-        ```
-        Args:
-            response (any): Object yielded from the text generation model.
-
-        Raises:
-            NotImplemented: Cannot call from base class.
-        """
         raise NotImplementedError("This is a base class")
 
     def generate(self, message):
-        """Send message, get response and, and manage context for
-            Chatbot if the context is enabled.
+        """A method to preprocess the chatbot response before returning it.
 
-        Args:
-            message (str): Message  to send to the IA model or API
-            ia_name (str, optional): Is the name of your chatbot.  Defaults to
-                "Bot:".
+        This method should be implemented by subclasses to perform any necessary preprocessing on the response, such as formatting, spelling correction, etc.
 
-        Returns:
-            str: Text generator model.
+        :param response: A string representing the chatbot response.
+        :type response: str
+        :return: A string representing the preprocessed chatbot response.
+        :rtype: str
+        :raises NotImplementedError: If the method is not implemented by a subclass.
         """
+
+        #TODO: catch json decode error
         if self.use_context:
             self.context.add_human_message(message)
             curr_message = self.chatbot_query(self.context.make_prompt())
@@ -89,66 +70,184 @@ class BaseChatBotManager:
         else:
             curr_message = self.chatbot_query(message)
             return curr_message
-
-
-class YouChat(BaseChatBotManager):
-    """Turns YouChat text generation model onto a conversational ChatBot.
-
-    Args:
-        BaseChatBotManager (BaseChatBotManager): Base class for all text
-            generation models to make it conversational
-    """
-
-    def __init__(self, api_key, locales, ia_name="Beto"):
-        """Init YouChat text generator model onto a conversational chatbot instance.
-
-        Args:
-            api_key (str): YouChat text generator API Key
-        """
-        use_context = True
-        self.locales = locales
-        self.api_key = api_key
-        self.chat = Chat
-        BaseChatBotManager.__init__(self, use_context, locales=locales, ia_name=ia_name, discard_method=self.dynamic_zero_shot_context_value_discard, discard_beams=1)
-
+        
+    
     def dynamic_zero_shot_context_value_discard(self, history, num):
-        # Esta es la implementación de un algoritmo para rankear
-        # Todos los mensajes y saber cualquier excuir sin modificar
-        # La idea del zero Shot learning es preguntarle al modelo del lenguaje para 
-        # Que resulva la tarea por mi :v 
+        """A method to discard old messages from the conversation history using a zero-shot classification model.
 
-        # Perfecto!
-        # TODO: Terminar el algoritmo
+        This method uses a zero-shot classification model to ask the user which messages are relevant for the current query and discards the rest.
+
+        :param history: A list of strings representing the conversation history.
+        :type history: list
+        :param num: An integer specifying how many messages to keep in the conversation history.
+        :type num: int
+        :return: A list of strings representing the updated conversation history.
+        :rtype: list
+        """
+
         initial_string = self.locales["base_zero_shot_classification"].format(num=num) + "\n"
         for i, value in enumerate(history):
             # Los tabs agregan mas peso a los mensajes para el modelo 
             initial_string += f"\t{i+1}. {value}\n"
         final_string  = initial_string + "\n" + self.locales["tail_zero_shot_clasification"].format(num=num)
-        print(final_string)
-        response = self.chat.send_message(final_string, api_key=self.api_key)
+        response = self.chatbot_query(final_string)
         response = self.preprocess(response)
-        sleep(0.5)
-        return [int(i, 10)-1 for i in set(re.findall(r"\d+", response))]
+        sleep(1)
+        indices = [int(i, 10)-1 for i in set(re.findall(r"\d+", response))]
+        if len(indices) > num:
+            # Use the fallback 
+            history = history[num:]
+            return history
+
+        for index in indices:
+            history.pop(index)
+        return history
+
+class BLOOMInferenceAPI(BaseChatBotManager):
+    """A subclass of BaseChatBotManager that uses the BLOOM API for text generation.
+
+    This class inherits from BaseChatBotManager and overrides the chatbot_query and preprocess methods to use the BLOOM API for text generation. The BLOOM API is a wrapper for the bigscience/bloom model on Hugging Face.
+
+    :param api_key: A string representing the Hugging Face API key.
+    :type api_key: str
+    :param locales: A list of locales supported by the chatbot manager.
+    :type locales: list
+    :param ia_name: An optional string specifying the name of the chatbot. Defaults to "Beto".
+    :type ia_name: str
+    :param discard_beams: An optional integer specifying how many beams to discard when using lifo method. Defaults to 1.
+    :type discard_beams: int
+    """
+
+    def __init__(self, api_key, locales, ia_name="Beto", discard_beams=1):
+        """Init YouChat text generator model onto a conversational chatbot instance.
+
+        This method initializes the BLOOMInferenceAPI class with the given parameters and calls the BaseChatBotManager constructor.
+
+        :param api_key: A string representing the Hugging Face API key.
+        :type api_key: str
+        :param locales: A list of locales supported by the chatbot manager.
+        :type locales: list
+        :param ia_name: An optional string specifying the name of the chatbot. Defaults to "Beto".
+        :type ia_name: str
+        :param discard_beams: An optional integer specifying how many beams to discard when using lifo method. Defaults to 1.
+        :type discard_beams: int
+        """
+        use_context = True
+        self.locales = locales
+        self.api_key = api_key
+        self.chat = Chat
+        BaseChatBotManager.__init__(self, use_context, 
+                                    locales=locales, 
+                                    ia_name=ia_name,
+                                    limit=3,
+                                    discard_method=self.dynamic_zero_shot_context_value_discard, 
+                                    discard_beams=discard_beams)
+
+        self.api_url = "https://api-inference.huggingface.co/models/bigscience/bloom"
+        self.headers = {"Authorization": f"Bearer {self.api_key}"}
+
 
     def preprocess(self, response):
-        """Take a YouChat API response and returns a clean string.
+        """A method to preprocess the chatbot response before returning it.
 
-        Args:
-            response (any): Response from YouChat text generation API.
+        This method overrides the BaseChatBotManager preprocess method and performs some formatting on the response, such as removing the "Bot:" prefix and any extra whitespace.
 
-        Returns:
-            str: A clean message.
+        :param response: A dictionary representing the chatbot response from the BLOOM API.
+        :type response: dict
+        :return: A string representing the preprocessed chatbot response.
+        :rtype: str
         """
         message = response['message']
         return message.replace("Bot:", "").strip()
 
     def chatbot_query(self, message):
-        """Make a query to YouChat text generation API.
+        """A method to query the chatbot with a given message.
 
-        Args:
-            message (str): User message to the chatbot
+        This method overrides the BaseChatBotManager chatbot_query method and uses the BLOOM API for text generation. It sends a POST request to the BLOOM API URL with the Hugging Face API key and returns the response.
+
+        :param message: A string representing the user input.
+        :type message: str
+        :return: A dictionary representing the chatbot response from the BLOOM API.
+        :rtype: dict
+        :raises ConnectionError: If the BLOOM API is not available.
         """
-        response = self.chat.send_message(message, api_key=self.api_key)
+        try:
+            response = requests.post(self.api_url, headers=self.headers)
+        except requests.JSONDecodeError:
+            return {"message": self.locales['api_error_message']}
+        if response == "Service Temporarily Unavailable":
+            raise ConnectionError("The You Chat API isn't available")
+        return response
+
+
+class YouChat(BaseChatBotManager):
+    """A subclass of BaseChatBotManager that uses the YouChat API for text generation.
+
+    This class inherits from BaseChatBotManager and overrides the chatbot_query and preprocess methods to use the YouChat API for text generation. The YouChat API is a service that provides natural language generation models.
+
+    :param api_key: A string representing the YouChat API key.
+    :type api_key: str
+    :param locales: A list of locales supported by the chatbot manager.
+    :type locales: list
+    :param ia_name: An optional string specifying the name of the chatbot. Defaults to "Beto".
+    :type ia_name: str
+    :param discard_beams: An optional integer specifying how many beams to discard when using lifo method. Defaults to 5.
+    :type discard_beams: int
+    """
+
+    def __init__(self, api_key, locales, ia_name="Beto", discard_beams=5):
+        """Init YouChat text generator model onto a conversational chatbot instance.
+
+        This method initializes the YouChat class with the given parameters and calls the BaseChatBotManager constructor.
+
+        :param api_key: A string representing the YouChat API key.
+        :type api_key: str
+        :param locales: A list of locales supported by the chatbot manager.
+        :type locales: list
+        :param ia_name: An optional string specifying the name of the chatbot. Defaults to "Beto".
+        :type ia_name: str
+        :param discard_beams: An optional integer specifying how many beams to discard when using lifo method. Defaults to 5.
+        :type discard_beams: int
+        """
+        use_context = True
+        self.locales = locales
+        self.api_key = api_key
+        self.chat = Chat
+        BaseChatBotManager.__init__(self, use_context, 
+                                    locales=locales, 
+                                    ia_name=ia_name, 
+                                    discard_method=self.dynamic_zero_shot_context_value_discard, 
+                                    discard_beams=discard_beams)
+
+
+    def preprocess(self, response):
+        """A method to preprocess the chatbot response before returning it.
+
+        This method overrides the BaseChatBotManager preprocess method and performs some formatting on the response, such as removing the "Bot:" prefix and any extra whitespace.
+
+        :param response: A dictionary representing the chatbot response from the YouChat API.
+        :type response: dict
+        :return: A string representing the preprocessed chatbot response.
+        :rtype: str
+        """
+        message = response['message']
+        return message.replace("Bot:", "").strip()
+
+    def chatbot_query(self, message):
+        """A method to query the chatbot with a given message.
+
+        This method overrides the BaseChatBotManager chatbot_query method and uses the YouChat API for text generation. It sends a POST request to the YouChat API URL with the YouChat API key and returns the response.
+
+        :param message: A string representing the user input.
+        :type message: str
+        :return: A dictionary representing the chatbot response from the YouChat API.
+        :rtype: dict
+        :raises ConnectionError: If the YouChat API is not available.
+        """
+        try:
+            response = self.chat.send_message(message, api_key=self.api_key)
+        except requests.JSONDecodeError:
+            return {"message": self.locales['api_error_message']}
         if response == "Service Temporarily Unavailable":
             raise ConnectionError("The You Chat API isn't available")
         return response
