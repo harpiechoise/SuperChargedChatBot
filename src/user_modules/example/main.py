@@ -1,5 +1,9 @@
 # TODO: Move metadata functions to a Python Package server
-from src.user_modules.example.lib.metadata_functions import feature_extractor_prompt
+from src.user_modules.example.lib.metadata_functions import (feature_extraction_ordering,
+                                                             feature_extractor_prompt)
+# Aliasing
+task_ordering = feature_extraction_ordering
+preprocessing_step_ordering = feature_extraction_ordering
 META_MODULE_NAME = "Example Module"
 META_MODULE_DESCRIPTION = "An example module to test the funcion"
 META_MODULE_VERSION = "1.0"
@@ -50,22 +54,26 @@ License: MIT
 Licensor: Psychecat
 """
 # Requerido
-DESCRIPTION_PROMPT = "Un modulo para ejecutar scripts de Python"
+DESCRIPTION_PROMPT = "Un modulo para ejecutar cualquier programa generador por un ChatBot, cualquier texto en forma de script generado por un chatbot, será capaz de ser ejecutado por éste modulo, cualquier prompt con la palabra programa, o script es necesario que pase por este modulo, recuerda cualquier prompt que tenga las palabras SCRIPT o PROGRAMA o se RELACIONE CON ESOS DOS CONCEPTOS"
 
+@feature_extraction_ordering(0)
 @feature_extractor_prompt(prompt="¿Puedes indentificar la descripción de la función de Python a programar?",
                           fallback="No puedo ayudarte a resolver ese problema")
 def module_feature_extractor(*args):
     print("Extracting_feature", args)
     return "Feature extracted"
 
+@preprocessing_step_ordering(0)
 def module_preprocess(*args):
     print("Preprocessing", args)
     return "Preprocessing_OUT"
 
+@task_ordering(0)
 def module_task_1(*args):
     print("Task1 Ejecutada", args)
     return "Task1_OUT"
 
+@task_ordering(1)
 def module_task_2(*args):
     print("Formating Input", args)
     return "Task2_OUT"

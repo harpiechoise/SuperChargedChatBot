@@ -124,15 +124,17 @@ class ModuleCompiler():
         task = []
 
         for fn in self.__fn_list:
+            function = getattr(self.__user_module_main_file, fn)
             if "task" in fn:
-                self.__task_functions.append(getattr(self.__user_module_main_file, fn))
+                self.__task_functions.append((function, function.priority))
             elif "preprocess" in fn:
-                self.__preprocess_functions.append(getattr(self.__user_module_main_file, fn))
+                self.__preprocess_functions.append((function, function.priority))
             elif "feature" in fn:
-                self.__feature_extraction_functions.append(getattr(self.__user_module_main_file, fn))
-        
-        full = feature + preprocess + task
-        return full
+                self.__feature_extraction_functions.append((function, function.priority))
+        # Ordeing priority tuples
+        self.__task_functions.sort(key=lambda x: x[1])
+        self.__preprocess_functions.sort(key=lambda x: x[1])
+        self.__feature_extraction_functions.sort(key=lambda x: x[1])
 
     def __execute_function(self, name: str, fn_input = None):
         """

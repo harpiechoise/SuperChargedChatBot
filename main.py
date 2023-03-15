@@ -6,4 +6,4 @@ from src.chat_modules.prompt_manager import PromptManager
 chat = YouChat(os.environ['CHATAPI'], LOCALES, "Flancisco")
 promter = PromptManager(chat, LOCALES)
 
-promter.chatbot_cli_mainloop()
+#promter.chatbot_cli_mainloop()
