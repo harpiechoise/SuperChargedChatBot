@@ -1,0 +1,15 @@
+SuperChargedChatbot Open Source License
+
+Version 1.0, March 2023
+
+Copyright (c) Psychecat
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to use the Software for non-commercial purposes only.
+
+Any use, modification, or distribution of the Software, in whole or in part, must include a reference to the original author and the source of the Software, including any inspiration or ideas taken from the "Visual ChatGPT" paper by Microsoft, available at https://arxiv.org/abs/2303.04671, accessed on March 12, 2023, and the use of the YouChat API.
+
+The Software is provided "as is," without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and non-infringement. In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the Software or the use or other dealings in the Software.
+
+This license applies to the SuperChargedChatbot project and any derivative works created from it. Any such derivative work must be distributed under the same terms and conditions as this license.
+
+By using, modifying, or distributing the Software, you accept and agree to be bound by the terms and conditions of this license. If you do not agree to these terms and conditions, do not use, modify, or distribute the Software.
